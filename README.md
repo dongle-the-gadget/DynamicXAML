@@ -27,6 +27,29 @@ Libraries should add the following property to their project (e.g. csproj, vcxpr
 
 This property will ensure that all XAML resources are embedded into the library's PRI file, which is required for **DynamicXaml** to work.
 
+If you have no control over the library or cannot add the above property for any other reason, you can use [MrmLib](https://github.com/ahmed605/MrmLib) library to embed resources referenced by path into the PRI at runtime, the following example demonstrates how to do this:
+
+```csharp
+using MrmLib;
+
+...
+
+StorageFile priStorageFile = ...;
+var priFile = await PriFile.LoadAsync(priStorageFile);
+
+// PRI root folder is the folder where the resources referenced by path in the PRI are located,
+// it usually has the same name as the PRI file (without the .pri extension).
+
+StorageFolder priRootFolder = ...;
+var result = await priFile.ReplacePathCandidatesWithEmbeddedDataAsync(priRootFolder);
+
+StorageFile modifiedPriStorageFile = ...;
+await priFile.WriteAsync(modifiedPriStorageFile);
+
+// You can also do this selectively by manually iterating over priFile.ResourceCandidates,
+// and then setting DataValue on the desired resource candidates only.
+```
+
 #### Additional considerations for UWP libraries
 
 > [!IMPORTANT]  
@@ -65,3 +88,96 @@ DynamicLoader.LoadPri(priFile);
 Then you can load the library dll and use the XAML resources defined in it, this is done via either `NativeLibrary.Load` (C#) or `LoadLibrary` (Native) in case of native libraries, or `Assembly.Load` in case of .NET libraries, in case of native libraries you can activate the XAML classes defined in it by calling the `DllGetActivationFactory` function exported by the dll.
 
 There are sample projects in the repository that demonstrate how to use **DynamicXaml** for both Native and .NET libraries in both [UWP](https://github.com/ahmed605/DynamicXAML/tree/master/DynamicXaml.UWP.Sample) and [WinUI 3](https://github.com/ahmed605/DynamicXAML/tree/master/DynamicXaml.WinUI.Sample) applications.
+
+### XamlReader Support
+
+To use **DynamicXaml** with `XamlReader` you have to register XAML metadata providers for the loaded libraries by calling `DynamicLoader.RegisterXamlMetadataProvider` with an instance of `IXamlMetadataProvider` for for each metadata provider in the loaded libraries.
+
+**DynamicXaml** providers a helper method `XamlMetadataProviderHelper.GetProviderTypeNamesFromAssemblyAsync` to list all available metadata provider type names in a library given its assembly dll in case of managed libraries or its WinMD file in case of native libraries.
+
+Example usage in C#:
+```csharp
+using DynamicXaml;
+
+...
+
+// Managed Library
+
+StorageFile dllAssembly = ...;
+var typeNames = await XamlMetadataProviderHelper.GetProviderTypeNamesFromAssemblyAsync(dllAssembly);
+
+if (typeNames.Count > 0)
+{
+    Assembly assembly = Assembly.LoadFrom(dllAssembly.Path);
+
+    foreach (var typeName in typeNames)
+    {
+        var providerType = assembly.GetType(typeName, true, false);
+        var providerInstance = (IXamlMetadataProvider)Activator.CreateInstance(providerType);
+        var token = DynamicLoader.RegisterXamlMetadataProvider(providerInstance);
+        // Store the token if you want to unregister the provider later
+    }
+})
+
+
+...
+
+
+// Native Library
+
+StorageFile winmdFile = ...;
+var typeNames = await XamlMetadataProviderHelper.GetProviderTypeNamesFromAssemblyAsync(winmdFile);
+
+if (typeNames.Count > 0 &&
+    NativeLibrary.TryLoad(nativeDllPath, out nint handle) &&
+    NativeLibrary.TryGetExport(handle, "DllGetActivationFactory", out pDllGetActivationFactory))
+{
+    var DllGetActivationFactory = (delegate* unmanaged[Stdcall]<void*, void**, int>)pDllGetActivationFactory;
+
+    foreach (var typeName in typeNames)
+    {
+        void* factoryPtr = default;
+        using var typeNameString = new DisposableMarshalString(typeName);
+        if (DllGetActivationFactory(typeNameString.Abi, &factoryPtr) >= 0)
+        {
+            var factory = MarshalInspectable<IActivationFactory>.FromAbi((nint)factoryPtr);
+            Marshal.Release((nint)factoryPtr);
+
+            var providerTypePtr = factory.ActivateInstance();
+            Marshal.ThrowExceptionForHR(Marshal.QueryInterface(providerTypePtr, typeof(IXamlMetadataProvider).GUID, out nint providerPtr));
+            Marshal.Release(providerTypePtr);
+
+            var providerInstance = MarshalInspectable<IXamlMetadataProvider>.FromAbi(providerPtr);
+            Marshal.Release(providerPtr);
+
+            var token = DynamicLoader.RegisterXamlMetadataProvider(providerInstance);
+            // Store the token if you want to unregister the provider later
+        }
+    }
+})
+
+...
+
+unsafe partial class DisposableMarshalString(string str) : IDisposable
+{
+    private MarshalString _str = MarshalString.CreateMarshaler(str);
+
+    public void* Abi => (void*)_str.GetAbi();
+
+    public void Dispose()
+    {
+        _str.Dispose();
+        _str = null;
+    }
+}
+```
+
+#### Additional considerations for Legacy .NET UWP applications under Debug mode
+
+> [!IMPORTANT]  
+> These considerations are only applicable to **Legacy .NET Native UWP** applications and only under **Debug** mode, they don't apply to **Release** mode nor modern .NET UWP applications.
+
+Legacy **.NET Native** UWP applications rely on **Reflection** for XAML metadata by default under **Debug** mode (but not under **Release** mode), which results in it ignoring XAML metadata providers registered via `DynamicLoader.RegisterXamlMetadataProvider`, to fix this add the following property to your application's .csproj project file:
+```xml
+<EnableTypeInfoReflection>false</EnableTypeInfoReflection>
+```
