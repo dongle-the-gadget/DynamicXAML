@@ -10,6 +10,8 @@ namespace DYNAMIC_XAML_NAMESPACE_MIDL
             static Windows.Foundation.IAsyncOperation<IVectorView<String> > GetProviderTypeNamesFromAssemblyAsync(String assemblyPath);
             [method_name("GetProviderTypeNamesFromAssemblyAsyncWithBytes")]
             static Windows.Foundation.IAsyncOperation<IVectorView<String> > GetProviderTypeNamesFromAssemblyAsync(UInt8[] assemblyBytes);
+            [method_name("GetProviderTypeNamesFromAssemblyAsyncWithStream")]
+                static Windows.Foundation.IAsyncOperation<IVectorView<String> > GetProviderTypeNamesFromAssemblyAsync(Windows.Storage.Streams.IRandomAccessStream assemblyStream);
             [method_name("GetProviderTypeNamesFromAssemblyAsyncWithStorageFile")]
             static Windows.Foundation.IAsyncOperation<IVectorView<String> > GetProviderTypeNamesFromAssemblyAsync(Windows.Storage.StorageFile assemblyFile);
         }

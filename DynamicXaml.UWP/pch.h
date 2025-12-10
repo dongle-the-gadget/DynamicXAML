@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #define WINAPI_PARTITION_DESKTOP true
+#define NOMINMAX
 
 #include <Windows.h>
 #include <unknwn.h>

@@ -118,6 +118,13 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::implementation
 		co_return GetProviderTypeNames(metaDataImport.get());
     }
 
+    IAsyncOperation<IVectorView<hstring>> XamlMetadataProviderHelper::GetProviderTypeNamesFromAssemblyAsync(IRandomAccessStream const& assemblyStream)
+    {
+        auto size = static_cast<uint32_t>(std::min(assemblyStream.Size(), (uint64_t)UINT32_MAX));
+        const auto& buffer = co_await assemblyStream.GetInputStreamAt(0).ReadAsync(Buffer { size }, size, InputStreamOptions::None);
+        co_return co_await GetProviderTypeNamesFromAssemblyAsync({ buffer.data(), buffer.Length() });
+    }
+
     IAsyncOperation<IVectorView<hstring>> XamlMetadataProviderHelper::GetProviderTypeNamesFromAssemblyAsync(StorageFile const& assemblyFile)
     {
         const auto& buffer = co_await winrt::Windows::Storage::FileIO::ReadBufferAsync(assemblyFile);

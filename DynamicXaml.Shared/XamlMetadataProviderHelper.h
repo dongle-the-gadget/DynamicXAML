@@ -13,6 +13,7 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::implementation
 {
     using namespace ::winrt::Windows::Storage;
     using namespace ::winrt::Windows::Foundation;
+    using namespace ::winrt::Windows::Storage::Streams;
     using namespace ::winrt::Windows::Foundation::Collections;
 
     struct XamlMetadataProviderHelper
@@ -26,6 +27,7 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::implementation
 
         static IAsyncOperation<IVectorView<hstring>> GetProviderTypeNamesFromAssemblyAsync(hstring assemblyPath);
         static IAsyncOperation<IVectorView<hstring>> GetProviderTypeNamesFromAssemblyAsync(array_view<uint8_t const> assemblyBytes);
+        static IAsyncOperation<IVectorView<hstring>> GetProviderTypeNamesFromAssemblyAsync(IRandomAccessStream const& assemblyStream);
         static IAsyncOperation<IVectorView<hstring>> GetProviderTypeNamesFromAssemblyAsync(StorageFile const& assemblyFile);
     };
 }

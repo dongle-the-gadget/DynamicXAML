@@ -3,6 +3,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Markup;
+using MrmLib;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -66,13 +67,23 @@ namespace DynamicXaml.WinUI.Sample
                         HorizontalAlignment = HorizontalAlignment.Stretch
                     };
 
-                    var checkBox = new CheckBox
+                    var xamlReaderCheckbox = new CheckBox
                     {
                         Content = "Use XamlReader (needs WinMD in case of native dlls)",
-                        Margin = new(15, 0, 15, 15),
+                        Margin = new(15, 0, 15, 10),
                         IsChecked = false,
                         IsEnabled = !isNative || winmd is not null,
-                        HorizontalAlignment = HorizontalAlignment.Left
+                        HorizontalAlignment = HorizontalAlignment.Left,
+                        VerticalContentAlignment = VerticalAlignment.Center
+                    };
+
+                    var mergePriResourcesCheckbox = new CheckBox
+                    {
+                        Content = "Embed resources referenced by path into the PRI (needed if the PRI was compiled without DisableEmbeddedXbf=false)",
+                        Margin = new(15, 0, 15, 15),
+                        IsChecked = false,
+                        HorizontalAlignment = HorizontalAlignment.Left,
+                        VerticalContentAlignment = VerticalAlignment.Center
                     };
 
                     var stack = new StackPanel()
@@ -81,7 +92,8 @@ namespace DynamicXaml.WinUI.Sample
                         Children =
                         {
                             box,
-                            checkBox
+                            xamlReaderCheckbox,
+                            mergePriResourcesCheckbox
                         }
                     };
 
@@ -106,14 +118,43 @@ namespace DynamicXaml.WinUI.Sample
 
                     if (await dialog.ShowAsync() == ContentDialogResult.Primary)
                     {
+                        if (mergePriResourcesCheckbox.IsChecked is true)
+                        {
+                            var folderPicker = new FolderPicker
+                            {
+                                FileTypeFilter = { "*" },
+                                CommitButtonText = "Select PRI root folder (usually has the same name as the PRI)"
+                            };
+
+                            InitializeWithWindow.Initialize(folderPicker, WindowNative.GetWindowHandle(this));
+
+                            if (await folderPicker.PickSingleFolderAsync() is { } rootFolder)
+                            {
+                                var priFile = await PriFile.LoadAsync(pri);
+                                _ = await priFile.ReplacePathCandidatesWithEmbeddedDataAsync(rootFolder);
+
+                                pri = await appdata.CreateFileAsync(pri.Name, CreationCollisionOption.ReplaceExisting);
+                                await priFile.WriteAsync(pri);
+                            }
+                            else
+                            {
+                                MessageDialog errorDialog = new("Please select the PRI root folder or disable PRI resource embedding.", "No PRI Root Folder Selected");
+                                await errorDialog.ShowAsync();
+                                goto Pick;
+                            }
+                        }
+                        else
+                        {
+                            pri = await pri.CopyAsync(appdata, pri.Name, NameCollisionOption.ReplaceExisting);
+                        }
+
                         name = box.Text;
-                        pri = await pri.CopyAsync(appdata, pri.Name, NameCollisionOption.ReplaceExisting);
                         winmd = winmd is not null ? await winmd.CopyAsync(appdata, winmd.Name, NameCollisionOption.ReplaceExisting) : null;
 
                         DynamicLoader.LoadPri(pri);
 
                         UIElement element = null;
-                        bool useXamlReader = checkBox.IsChecked is true;
+                        bool useXamlReader = xamlReaderCheckbox.IsChecked is true;
 
                         IReadOnlyList<string> providerTypeNames = null;
                         List<IXamlMetadataProvider> providers = null;
