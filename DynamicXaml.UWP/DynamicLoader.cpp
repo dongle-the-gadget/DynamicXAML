@@ -93,11 +93,11 @@ namespace winrt::DynamicXaml::UWP::implementation
             for (auto& pair : s_resourceMaps)
             {
                 if (SUCCEEDED(hr = s_GetNamedResource(pair.second, unk1, iid, ppv)))
-					break;
-			}
+                    break;
+            }
         }
 
-		return hr;
+        return hr;
     }
 
     HRESULT WINAPI DynamicLoader::GetSubtreeHook(void* pThis, LPCWSTR name, awarc::IMrtResourceMap** ppSubtree)
@@ -122,15 +122,15 @@ namespace winrt::DynamicXaml::UWP::implementation
         {
             if (s_enableUnsafeHooks)
             {
-				com_ptr<awarc::IMrtResourceManager> resourceManager;
+                com_ptr<awarc::IMrtResourceManager> resourceManager;
                 if (SUCCEEDED(CoCreateInstance(__uuidof(awarc::MrtResourceManager), nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(resourceManager.put()))))
                 {
                     if (SUCCEEDED(resourceManager->InitializeForCurrentApplication()))
                     {
-						com_ptr<awarc::IMrtResourceMap> resourceMap;
+                        com_ptr<awarc::IMrtResourceMap> resourceMap;
                         if (SUCCEEDED(resourceManager->GetMainResourceMap(IID_PPV_ARGS(resourceMap.put()))))
                         {
-							auto vftbl = *(void***)resourceMap.get();
+                            auto vftbl = *(void***)resourceMap.get();
                             s_GetNamedResource = (decltype(s_GetNamedResource))vftbl[11];
                             s_GetSubtree = (decltype(s_GetSubtree))vftbl[4];
 
@@ -139,7 +139,7 @@ namespace winrt::DynamicXaml::UWP::implementation
                             DetourAttach(&(PVOID&)s_GetNamedResource, DynamicLoader::GetNamedResourceHook);
                             DetourAttach(&(PVOID&)s_GetSubtree, DynamicLoader::GetSubtreeHook);
                             s_initialized = DetourTransactionCommit() == NO_ERROR;
-						}
+                        }
                     }
                 }
             }
@@ -159,6 +159,6 @@ namespace winrt::DynamicXaml::UWP::implementation
             }
         }
 
-		return s_initialized;
+        return s_initialized;
     }
 }

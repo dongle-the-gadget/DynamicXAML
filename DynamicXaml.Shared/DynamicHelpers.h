@@ -6,7 +6,7 @@ namespace DynamicXaml
 {
     inline bool IsWinUIAddress(PVOID Address)
     {
-		static HMODULE winui = GetModuleHandleW(L"Microsoft.UI.Xaml.dll");
+        static HMODULE winui = GetModuleHandleW(L"Microsoft.UI.Xaml.dll");
 
         HMODULE Module;
         if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS, (LPCWSTR)Address, &Module))
