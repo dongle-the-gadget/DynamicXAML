@@ -20,7 +20,7 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::DynamicXaml_MetadataProvider::implement
             }
         }
 
-		return nullptr;
+        return nullptr;
     }
 
     IXamlType DynamicXamlMetadataProvider::GetXamlType(hstring const& fullName)
@@ -49,6 +49,6 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::DynamicXaml_MetadataProvider::implement
             allDefinitions.insert(allDefinitions.end(), definitions.begin(), definitions.end());
         }
 
-		return com_array<XmlnsDefinition>(std::move(allDefinitions));
+        return com_array<XmlnsDefinition>(std::move(allDefinitions));
     }
 }

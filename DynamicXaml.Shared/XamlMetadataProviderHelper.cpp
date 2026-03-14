@@ -34,7 +34,7 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::implementation
                 HCORENUM hEnumImpl = NULL;
                 mdInterfaceImpl impl = { };
 
-				bool implementsIXamlMetadataProvider = false;
+                bool implementsIXamlMetadataProvider = false;
                 while (SUCCEEDED(metaDataImport->EnumInterfaceImpls(&hEnumImpl, mdType, &impl, 1, &implCount)) && implCount == 1)
                 {
                     mdToken interfaceToken = { };
@@ -49,9 +49,9 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::implementation
                             break;
                         }
                     }
-				}
+                }
 
-				if (hEnumImpl) metaDataImport->CloseEnum(hEnumImpl);
+                if (hEnumImpl) metaDataImport->CloseEnum(hEnumImpl);
                 if (!implementsIXamlMetadataProvider) continue;
 
                 ULONG ctorCount = 0;
@@ -91,13 +91,13 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::implementation
     {
         co_await winrt::resume_background();
 
-		com_ptr<IMetaDataDispenser> metaDataDispenser;
-		check_hresult(MetaDataGetDispenser(CLSID_CorMetaDataDispenser, IID_IMetaDataDispenser, metaDataDispenser.put_void()));
+        com_ptr<IMetaDataDispenser> metaDataDispenser;
+        check_hresult(MetaDataGetDispenser(CLSID_CorMetaDataDispenser, IID_IMetaDataDispenser, metaDataDispenser.put_void()));
 
-		com_ptr<IMetaDataImport> metaDataImport;
-		check_hresult(metaDataDispenser->OpenScope(assemblyPath.c_str(), ofRead, IID_IMetaDataImport, reinterpret_cast<::IUnknown**>(metaDataImport.put())));
+        com_ptr<IMetaDataImport> metaDataImport;
+        check_hresult(metaDataDispenser->OpenScope(assemblyPath.c_str(), ofRead, IID_IMetaDataImport, reinterpret_cast<::IUnknown**>(metaDataImport.put())));
 
-		co_return GetProviderTypeNames(metaDataImport.get());
+        co_return GetProviderTypeNames(metaDataImport.get());
     }
 
     IAsyncOperation<IVectorView<hstring>> XamlMetadataProviderHelper::GetProviderTypeNamesFromAssemblyAsync(array_view<uint8_t const> assemblyBytes)
@@ -115,7 +115,7 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::implementation
             IID_IMetaDataImport,
             reinterpret_cast<::IUnknown**>(metaDataImport.put())));
 
-		co_return GetProviderTypeNames(metaDataImport.get());
+        co_return GetProviderTypeNames(metaDataImport.get());
     }
 
     IAsyncOperation<IVectorView<hstring>> XamlMetadataProviderHelper::GetProviderTypeNamesFromAssemblyAsync(IRandomAccessStream const& assemblyStream)

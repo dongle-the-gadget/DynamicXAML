@@ -19,7 +19,7 @@ namespace winrt::DYNAMIC_XAML_NAMESPACE::implementation
     struct XamlMetadataProviderHelper
     {
     private:
-		static IVectorView<hstring> GetProviderTypeNames(IMetaDataImport* metaDataImport);
+        static IVectorView<hstring> GetProviderTypeNames(IMetaDataImport* metaDataImport);
         inline static uint32_t GetParameterCount(PCCOR_SIGNATURE signature);
 
     public:

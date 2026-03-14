@@ -15,8 +15,8 @@ namespace warc = winrt::Windows::ApplicationModel::Resources::Core;
 
 namespace winrt::DynamicXaml::WinUI::implementation
 {
-	bool DynamicLoader::s_initialized = false;
-	std::vector<ResourceMap> DynamicLoader::s_resourceMaps;
+    bool DynamicLoader::s_initialized = false;
+    std::vector<ResourceMap> DynamicLoader::s_resourceMaps;
     decltype(&DynamicLoader::TryGetValueWithContextHook) s_TryGetValueWithContext = nullptr;
     decltype(&DynamicLoader::TryGetSubtreeHook) s_TryGetSubtree = nullptr;
 
@@ -58,7 +58,7 @@ namespace winrt::DynamicXaml::WinUI::implementation
 
     void DynamicLoader::LoadPri(hstring const& priFilePath)
     {
-		if (!TryLoadPri(priFilePath))
+        if (!TryLoadPri(priFilePath))
             throw winrt::hresult_error(E_FAIL, L"Failed to load the specified PRI file.");
     }
 
@@ -67,7 +67,7 @@ namespace winrt::DynamicXaml::WinUI::implementation
         if (!priFile)
             throw winrt::hresult_invalid_argument(L"priFile cannot be null.");
 
-		LoadPri(priFile.Path());
+        LoadPri(priFile.Path());
     }
 
     #include <IDynamicLoaderStatics2.impl.cpp.inl>
@@ -76,7 +76,7 @@ namespace winrt::DynamicXaml::WinUI::implementation
     {
         HRESULT hr = S_OK;
 
-		void* pCandidate = nullptr;
+        void* pCandidate = nullptr;
         if (SUCCEEDED(hr = s_TryGetValueWithContext(pThis, resource, pContext, &pCandidate)) && pCandidate == nullptr)
         {
             for (const auto& map : s_resourceMaps)
@@ -91,12 +91,12 @@ namespace winrt::DynamicXaml::WinUI::implementation
             *ppCandidate = pCandidate;
         }
 
-		return hr;
+        return hr;
     }
 
     HRESULT WINAPI DynamicLoader::TryGetSubtreeHook(void* pThis, HSTRING reference, void** ppResMap)
     {
-		HRESULT hr = S_OK;
+        HRESULT hr = S_OK;
 
         winrt::hstring refStr;
         winrt::copy_from_abi(refStr, reference);
@@ -108,7 +108,7 @@ namespace winrt::DynamicXaml::WinUI::implementation
                 if (SUCCEEDED(hr = s_TryGetSubtree(winrt::get_abi(map), reference, ppResMap)) && *ppResMap)
                     break;
             }
-		}
+        }
 
         return hr;
     }
@@ -130,9 +130,9 @@ namespace winrt::DynamicXaml::WinUI::implementation
                 DetourAttach(&(PVOID&)s_TryGetValueWithContext, DynamicLoader::TryGetValueWithContextHook);
                 DetourAttach(&(PVOID&)s_TryGetSubtree, DynamicLoader::TryGetSubtreeHook);
                 s_initialized = DetourTransactionCommit() == NO_ERROR;
-			} catch (...) { }
+            } catch (...) { }
         }
 
-		return s_initialized;
+        return s_initialized;
     }
 }

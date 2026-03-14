@@ -9,15 +9,15 @@
 
 namespace winrt::DYNAMIC_XAML_NAMESPACE::DynamicXaml_MetadataProvider::implementation
 {
-	using namespace ::winrt::XAML_NAMESPACE::Markup;
-	using namespace ::winrt::Windows::UI::Xaml::Interop;
+    using namespace ::winrt::XAML_NAMESPACE::Markup;
+    using namespace ::winrt::Windows::UI::Xaml::Interop;
 
     struct DynamicXamlMetadataProvider : DynamicXamlMetadataProviderT<DynamicXamlMetadataProvider>
     {
     public:
-		static std::unordered_map<uint16_t, IXamlMetadataProvider> s_providers;
-		static uint16_t s_nextToken;
-		static std::mutex s_mutex;
+        static std::unordered_map<uint16_t, IXamlMetadataProvider> s_providers;
+        static uint16_t s_nextToken;
+        static std::mutex s_mutex;
 
     public:
         DynamicXamlMetadataProvider() = default;

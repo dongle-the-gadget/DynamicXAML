@@ -18,11 +18,11 @@ namespace winrt::DynamicXaml::UWP::implementation
     struct DynamicLoader
     {
     private:
-		static bool s_initialized;
-		static bool s_enableUnsafeHooks;
-		static std::unordered_map<awarc::IMrtResourceMap*, awarc::IMrtResourceMap*> s_resourceMaps;
+        static bool s_initialized;
+        static bool s_enableUnsafeHooks;
+        static std::unordered_map<awarc::IMrtResourceMap*, awarc::IMrtResourceMap*> s_resourceMaps;
 
-		static bool EnsureInitialized();
+        static bool EnsureInitialized();
 
     public:
         static HRESULT WINAPI LoadComponentWithResourceLocationHook(void* pThis, IInspectable* pComponent, void* resourceLocator, ComponentResourceLocation componentResourceLocation);
